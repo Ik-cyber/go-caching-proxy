@@ -1,0 +1,138 @@
+module caching-proxy
+
+go 1.20
+
+require (
+	gopkg.in/yaml.v3 v3.0.1
+)
+
+// Folder structure
+// caching-proxy/
+// ├── main.go
+// ├── config/
+// │   └── config.go
+// ├── proxy/
+// │   ├── proxy.go
+// │   └── cache.go
+// ├── models/
+// │   └── config.go
+// ├── utils/
+// │   └── logger.go
+// └── config.yaml
+
+// Sample files with skeleton code:
+
+// main.go
+package main
+
+import (
+	"log"
+	"net/http"
+	"caching-proxy/config"
+	"caching-proxy/proxy"
+)
+
+func main() {
+	cfg := config.LoadConfig("config.yaml")
+	p := proxy.NewProxy(cfg)
+
+	http.HandleFunc("/", p.HandleRequest)
+	log.Println("Proxy server running on :8080")
+	http.ListenAndServe(":8080", nil)
+}
+
+// config/config.go
+package config
+
+import (
+	"caching-proxy/models"
+	"gopkg.in/yaml.v3"
+	"io/ioutil"
+	"log"
+)
+
+func LoadConfig(filename string) *models.Config {
+	data, err := ioutil.ReadFile(filename)
+	if err != nil {
+		log.Fatalf("Failed to read config: %v", err)
+	}
+	var cfg models.Config
+	err = yaml.Unmarshal(data, &cfg)
+	if err != nil {
+		log.Fatalf("Failed to parse config: %v", err)
+	}
+	return &cfg
+}
+
+// models/config.go
+package models
+
+type Config struct {
+	Routes []Route `yaml:"routes"`
+}
+
+type Route struct {
+	Domain string `yaml:"domain"`
+	TTL    int    `yaml:"ttl"`
+}
+
+// proxy/proxy.go
+package proxy
+
+import (
+	"caching-proxy/config"
+	"caching-proxy/models"
+	"net/http"
+)
+
+type Proxy struct {
+	config *models.Config
+	cache  *Cache
+}
+
+func NewProxy(cfg *models.Config) *Proxy {
+	return &Proxy{
+		config: cfg,
+		cache:  NewCache(cfg),
+	}
+}
+
+func (p *Proxy) HandleRequest(w http.ResponseWriter, r *http.Request) {
+	// TODO: Implement caching lookup and request forwarding
+	w.Write([]byte("Proxy handler placeholder"))
+}
+
+// proxy/cache.go
+package proxy
+
+import (
+	"caching-proxy/models"
+)
+
+type Cache struct {
+	// TODO: Implement cache storage and expiration management
+}
+
+func NewCache(cfg *models.Config) *Cache {
+	return &Cache{}
+}
+
+// utils/logger.go
+package utils
+
+import "log"
+
+func Info(msg string) {
+	log.Println("[INFO]", msg)
+}
+
+func Error(msg string) {
+	log.Println("[ERROR]", msg)
+}
+
+// config.yaml
+routes:
+  - domain: "jsonplaceholder.typicode.com"
+    ttl: 60
+  - domain: "myapi.com"
+    ttl: 120

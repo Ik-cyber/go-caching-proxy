@@ -1,0 +1,5 @@
+routes:
+  - domain: "jsonplaceholder.typicode.com"
+    ttl: 60
+  - domain: "myapi.com"
+    ttl: 120
